@@ -110,11 +110,13 @@ class DatabaseQueue extends Queue implements QueueInterface
     public function storeJob($job, $data, $queue, $timestamp = 0)
     {
         $payload = $this->createPayload($job, $data);
+        
+        $timestamp = ($timestamp != 0 )? date('Y-m-d H:i:s',time()) : Carbon::now()->tz("UTC")->toDateTimeString();
 
         $job = new Job();
         $job->queue = ($queue ? $queue : $this->default);
         $job->status = Job::STATUS_OPEN;
-        $job->timestamp = date('Y-m-d H:i:s', ($timestamp != 0 ? $timestamp : time()));
+        $job->timestamp = $timestamp;
         $job->payload = $payload;
         $job->save();
 
@@ -203,7 +205,7 @@ class DatabaseQueue extends Queue implements QueueInterface
      */
     protected function pushToDatabase($delay, $queue, $payload, $attempts = 0)
     {
-        $availableAt = $delay instanceof DateTime ? $delay : Carbon::now()->addSeconds($delay);
+        $availableAt = $delay instanceof DateTime ? $delay : Carbon::now()->tz("UTC")->addSeconds($delay);
 
         return $this->database->table($this->table)->insertGetId([
             'queue' => $this->getQueue($queue),
