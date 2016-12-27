@@ -86,7 +86,7 @@ class DatabaseJob extends \Illuminate\Queue\Jobs\Job
     public function release($delay = 0)
     {
         $now = new Carbon();
-        $now->addSeconds($delay);
+        $now->tz("UTC")->addSeconds($delay);
         $this->job->timestamp = $now->toDateTimeString();
         $this->job->status = Job::STATUS_WAITING;
         $this->job->retries += 1;
